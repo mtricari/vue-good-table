@@ -121,6 +121,15 @@
               </slot>
             </td>
           </tr>
+          <tr>
+            <th v-if="lineNumbers" class="line-numbers"></th>
+            <th v-for="(column, index) in columns"
+              :key="column.field"
+              v-if="!column.hidden">
+              <span v-if="column.summarizable">{{ collectFormatted(columnsSummarized, column) }}</span>
+            </th>
+            <slot name="thead-tr"></slot>
+          </tr>
         </tbody>
       </table>
 
@@ -158,9 +167,11 @@
       onClick: {},
       perPage: {},
       sortable: {default: true},
+      summarizable: {default: false},
       paginate: {default: false},
       paginateOnTop: {default: false},
       lineNumbers: {default: false},
+      columnTotals: {default: false},
       defaultSortBy: {default: null},
       responsive: {default: true},
       rtl: {default: false},
@@ -192,9 +203,30 @@
       timer: null,
       forceSearch: false,
       sortChanged: false,
+      columnsSummarized: {}
     }),
 
     methods: {
+
+      summarizeColumns(rows) {
+        this.columnsSummarized = {};
+        //console.log("Entering summarizeColumns for " + rows.length + " rows");
+        for (var row of rows) {
+          //console.log("Processing row  at index " + row.originalIndex);
+          for(var col of this.columns) {
+            if(col.summarizable && col.field) {
+              //console.log("Processing column " + col.field);
+              if(typeof this.columnsSummarized[col.field] != 'undefined') {
+                this.columnsSummarized[col.field] += Number(row[col.field]);
+                //console.log("Current SUM of column " + col.field + "=" + this.columnsSummarized[col.field]);
+              } else {
+                this.columnsSummarized[col.field] = Number(row[col.field]);
+              }
+            }
+          }
+        }
+        //console.log("Columns Summarized: " + JSON.stringify(this.columnsSummarized));
+      },
 
       pageChanged(pagination) {
         this.currentPage = pagination.currentPage;
@@ -301,6 +333,12 @@
         const sortable = this.columns[index].sortable;
         const isSortable = typeof sortable === 'boolean' ? sortable : this.sortable;
         return isSortable;
+      },
+
+      //Check if columns is summarizable
+      isSummarizableColumn(index) {
+        const summarizable = this.columns[index].summarizable;
+        const isSummarizable = typeof summarizable === 'boolean' ? summarizable : this.summarizable;
       },
 
       //Get classes for the given header column.
@@ -560,6 +598,10 @@
           }
 
           paginatedRows = paginatedRows.slice(pageStart, pageEnd);
+
+          if(this.columnTotals) {
+            this.summarizeColumns(paginatedRows);
+          }
         }
         return paginatedRows;
       },

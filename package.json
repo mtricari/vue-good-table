@@ -26,7 +26,11 @@
   "author": "Akshay Anand",
   "license": "MIT",
   "dependencies": {
-    "date-fns": "^2.0.0-alpha.3"
+    "ansi-html": "0.0.7",
+    "date-fns": "^2.0.0-alpha.3",
+    "html-entities": "^1.2.1",
+    "setimmediate": "^1.0.5",
+    "strip-ansi": "^4.0.0"
   },
   "devDependencies": {
     "autoprefixer": "^6.7.2",
